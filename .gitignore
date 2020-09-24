@@ -1,0 +1,8 @@
+clientAdmin.iml
+.idea
+/target/
+/shelf/
+/workspace.xml
+/dataSources/
+/dataSources.local.xml
+/httpRequests/
