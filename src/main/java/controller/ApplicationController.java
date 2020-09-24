@@ -1,4 +1,4 @@
 package controller;
 
-public class ApplicationController {
+public interface ApplicationController {
 }
