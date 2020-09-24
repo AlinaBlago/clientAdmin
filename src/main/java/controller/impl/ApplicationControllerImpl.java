@@ -25,22 +25,22 @@ import java.util.Set;
 
 public class ApplicationControllerImpl implements ApplicationController {
     @FXML
-    private Label currentUserNameLabel;
+    Label currentUserNameLabel;
 
     @FXML
-    private Button logoutButton;
+    Button logoutButton;
 
     @FXML
-    private ListView<String> usersListView;
+    ListView<String> usersListView;
 
     @FXML
-    private Button deleteUserButton;
+    Button deleteUserButton;
 
     @FXML
-    private Button blockUserButton;
+    Button blockUserButton;
 
     @FXML
-    private Button unblockUserButton;
+    Button unblockUserButton;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -65,7 +65,9 @@ public class ApplicationControllerImpl implements ApplicationController {
         setCurrentUserNameToWindow();
     }
 
-    private void deleteUser(ActionEvent event){
+    @Override
+    @FXML
+    public void deleteUser(ActionEvent event){
         if (usersListView.getSelectionModel().isEmpty() == true){
             logger.info("Delete user function call : user is empty");
             return;
@@ -101,8 +103,9 @@ public class ApplicationControllerImpl implements ApplicationController {
         }
     }
 
-
-    private void banUser(ActionEvent event){
+    @Override
+    @FXML
+    public void banUser(ActionEvent event){
         if (usersListView.getSelectionModel().isEmpty() == true){
             logger.info("banUser function call : user is empty");
             return;
@@ -136,7 +139,9 @@ public class ApplicationControllerImpl implements ApplicationController {
         }
     }
 
-    private void unBanUser(ActionEvent event){
+    @Override
+    @FXML
+    public void unBanUser(ActionEvent event){
         if (usersListView.getSelectionModel().isEmpty() == true){
             logger.info("unbanUser function call : user is empty");
             return;
@@ -170,12 +175,12 @@ public class ApplicationControllerImpl implements ApplicationController {
         }
     }
 
-    private void setCurrentUserNameToWindow(){
+    public void setCurrentUserNameToWindow(){
         String text = "Вы вошли под логином : " + CurrentUser.getCurrentUser().getLogin();
         currentUserNameLabel.setText(text);
     }
 
-    private void loadUsers(){
+    public void loadUsers(){
         try {
             logger.info("request 'loaduserchat' configuration");
             StringBuffer url = new StringBuffer();
@@ -212,7 +217,9 @@ public class ApplicationControllerImpl implements ApplicationController {
 
     }
 
-    private void logOut(ActionEvent event){
+    @Override
+    @FXML
+    public void logOut(ActionEvent event){
         logger.info("logout command");
         CurrentUser.logOut();
 
