@@ -2,6 +2,7 @@ package controller.impl;
 
 import com.google.gson.Gson;
 import controller.LogInController;
+import data.User;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
