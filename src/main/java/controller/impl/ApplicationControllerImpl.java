@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import controller.ApplicationController;
 import data.CurrentUser;
+import data.ServerArgument;
+import data.User;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -13,6 +15,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.stage.Stage;
+import org.springframework.http.ResponseEntity;
+import providers.RequestType;
+import providers.ServerConnectionProvider;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -20,6 +25,8 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 import java.util.Set;
 
@@ -68,36 +75,23 @@ public class ApplicationControllerImpl implements ApplicationController {
     @Override
     @FXML
     public void deleteUser(ActionEvent event){
-        if (usersListView.getSelectionModel().isEmpty() == true){
-            logger.info("Delete user function call : user is empty");
+        if (usersListView.getSelectionModel().isEmpty()){
+            logger.info("Delete user function call: user is empty");
             return;
         }
         try {
-            logger.info("request 'deleteUser' configuration");
-            StringBuffer url = new StringBuffer();
-            url.append("http://localhost:8080/deleteUser?login=");
-            url.append(CurrentUser.getCurrentUser().getLogin());
-            url.append("&key=");
-            url.append(CurrentUser.getCurrentKey());
-            url.append("&userToDeleteLogin=");
-            url.append(usersListView.getSelectionModel().getSelectedItem());
+            List<ServerArgument> argumentsList = new ArrayList<>();
+            argumentsList.add(new ServerArgument("login" , CurrentUser.getCurrentUser().getLogin()));
+            //TODO
+            argumentsList.add(new ServerArgument("password" , usersListView.getSelectionModel().getSelectedItem()));
 
-            URL obj = new URL(url.toString());
-            HttpURLConnection connection = (HttpURLConnection) obj.openConnection();
+            //TODO
+            ResponseEntity<Integer> answer = ServerConnectionProvider.getInstance().loginRequest("login", argumentsList, RequestType.GET);
 
-            connection.setRequestMethod("GET");
-
-            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String inputLine;
-            StringBuffer response = new StringBuffer();
-
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-            in.close();
             logger.info("request was sent");
             usersListView.getItems().clear();
             loadUsers();
+
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
@@ -106,35 +100,24 @@ public class ApplicationControllerImpl implements ApplicationController {
     @Override
     @FXML
     public void banUser(ActionEvent event){
-        if (usersListView.getSelectionModel().isEmpty() == true){
+        if (usersListView.getSelectionModel().isEmpty()){
             logger.info("banUser function call : user is empty");
             return;
         }
         try {
             logger.info("request 'banUser' configuration");
-            StringBuffer url = new StringBuffer();
-            url.append("http://localhost:8080/banUser?login=");
-            url.append(CurrentUser.getCurrentUser().getLogin());
-            url.append("&key=");
-            url.append(CurrentUser.getCurrentKey());
-            url.append("&userToBanLogin=");
-            url.append(usersListView.getSelectionModel().getSelectedItem());
 
-            URL obj = new URL(url.toString());
-            HttpURLConnection connection = (HttpURLConnection) obj.openConnection();
+            List<ServerArgument> argumentsList = new ArrayList<>();
+            argumentsList.add(new ServerArgument("login", CurrentUser.getCurrentUser().getLogin()));
+            //TODO: name
+            argumentsList.add(new ServerArgument("password", usersListView.getSelectionModel().getSelectedItem()));
 
-            connection.setRequestMethod("GET");
+            //TODO: serverFunction
+            ResponseEntity<Integer> answer = ServerConnectionProvider.getInstance().loginRequest("login", argumentsList, RequestType.GET);
 
-            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String inputLine;
-            StringBuffer response = new StringBuffer();
-
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-            in.close();
             logger.info("request was sent");
         } catch (Exception e) {
+            //TODO: LOGGER
             System.out.println(e.getMessage());
         }
     }
@@ -142,33 +125,20 @@ public class ApplicationControllerImpl implements ApplicationController {
     @Override
     @FXML
     public void unBanUser(ActionEvent event){
-        if (usersListView.getSelectionModel().isEmpty() == true){
+        if (usersListView.getSelectionModel().isEmpty()){
             logger.info("unbanUser function call : user is empty");
             return;
         }
         try {
             logger.info("request 'unbanUser' configuration");
-            StringBuffer url = new StringBuffer();
-            url.append("http://localhost:8080/unbanUser?login=");
-            url.append(CurrentUser.getCurrentUser().getLogin());
-            url.append("&key=");
-            url.append(CurrentUser.getCurrentKey());
-            url.append("&userToUnbanLogin=");
-            url.append(usersListView.getSelectionModel().getSelectedItem());
 
-            URL obj = new URL(url.toString());
-            HttpURLConnection connection = (HttpURLConnection) obj.openConnection();
+            List<ServerArgument> argumentsList = new ArrayList<>();
+            argumentsList.add(new ServerArgument("login" , CurrentUser.getCurrentUser().getLogin()));
+            argumentsList.add(new ServerArgument("usersList" , usersListView.getSelectionModel().getSelectedItem()));
 
-            connection.setRequestMethod("GET");
+            //TODO
+            ResponseEntity<Integer> answer = ServerConnectionProvider.getInstance().loginRequest("login", argumentsList, RequestType.GET);
 
-            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String inputLine;
-            StringBuffer response = new StringBuffer();
-
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-            in.close();
             logger.info("Request was sent");
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -176,35 +146,22 @@ public class ApplicationControllerImpl implements ApplicationController {
     }
 
     public void setCurrentUserNameToWindow(){
-        String text = "Вы вошли под логином : " + CurrentUser.getCurrentUser().getLogin();
+        String text = "Вы вошли под логином: " + CurrentUser.getCurrentUser().getLogin();
         currentUserNameLabel.setText(text);
     }
 
     public void loadUsers(){
         try {
             logger.info("request 'loaduserchat' configuration");
-            StringBuffer url = new StringBuffer();
-            url.append("http://localhost:8080/LoadUsersForAdmin?login=");
-            url.append(CurrentUser.getCurrentUser().getLogin());
-            url.append("&key=");
-            url.append(CurrentUser.getCurrentKey());
 
-            URL obj = new URL(url.toString());
-            HttpURLConnection connection = (HttpURLConnection) obj.openConnection();
+            List<ServerArgument> argumentsList = new ArrayList<>();
+            argumentsList.add(new ServerArgument("login" , CurrentUser.getCurrentUser().getLogin()));
 
-            connection.setRequestMethod("GET");
-
-            BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String inputLine;
-            StringBuffer response = new StringBuffer();
-
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
-            }
-            in.close();
+            //TODO
+            ResponseEntity<Integer> answer = ServerConnectionProvider.getInstance().loginRequest("login", argumentsList, RequestType.GET);
             logger.info("request was sent");
-            Gson gson = new Gson();
 
+            //TODO
             Type listType = new TypeToken<Set<String>>(){}.getType();
 //            Set<String> currentUsers = gson.fromJson(response1.getResponseMessage() , listType);
 //            currentUsers.remove(CurrentUser.getCurrentUser().getLogin());
@@ -212,6 +169,7 @@ public class ApplicationControllerImpl implements ApplicationController {
             usersListView.refresh();
 
         } catch (Exception e) {
+            //TODO: LOGGER
             System.out.println(e.getMessage());
         }
 

@@ -58,6 +58,7 @@ public class LogInControllerImpl implements LogInController {
                     ResponseEntity<Integer> answer = ServerConnectionProvider.getInstance().loginRequest("login", argumentsList, RequestType.GET);
 
                     User user = new User("" , loginField.getText() , "");
+                    //TODO
                     CurrentUser.init(user, answer.getBody());
 
                     if(answer != null) {
