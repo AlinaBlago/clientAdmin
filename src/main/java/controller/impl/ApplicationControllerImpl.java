@@ -14,6 +14,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import org.springframework.http.ResponseEntity;
 import providers.RequestType;
@@ -49,6 +50,15 @@ public class ApplicationControllerImpl implements ApplicationController {
     @FXML
     Button unblockUserButton;
 
+    @FXML
+    TextField findUserLogin;
+
+    @FXML
+    Button findUserButton;
+
+    @FXML
+    Button logUpButton;
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         logoutButton.setOnAction(this::logOut);
@@ -58,6 +68,8 @@ public class ApplicationControllerImpl implements ApplicationController {
         blockUserButton.setOnAction(this::banUser);
 
         unblockUserButton.setOnAction(this::unBanUser);
+
+        logUpButton.setOnAction(this::onSignUpClick);
 
         /*
         users_listview.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
@@ -72,77 +84,90 @@ public class ApplicationControllerImpl implements ApplicationController {
         setCurrentUserNameToWindow();
     }
 
+    @FXML
+    private void onSignUpClick(ActionEvent event){
+        Stage signUp = new Stage();
+        Parent signUpSceneRoot = null;
+        try {
+            signUpSceneRoot = FXMLLoader.load(ApplicationControllerImpl.this.getClass().getResource("/logUp.fxml"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        signUp.setScene(new Scene(signUpSceneRoot, 620, 680));
+        signUp.show();
+    }
+
     @Override
     @FXML
     public void deleteUser(ActionEvent event){
-        if (usersListView.getSelectionModel().isEmpty()){
-            logger.info("Delete user function call: user is empty");
-            return;
-        }
-        try {
-            List<ServerArgument> argumentsList = new ArrayList<>();
-            argumentsList.add(new ServerArgument("login" , CurrentUser.getCurrentUser().getLogin()));
-            //TODO
-            argumentsList.add(new ServerArgument("password" , usersListView.getSelectionModel().getSelectedItem()));
-
-            //TODO
-            ResponseEntity<Integer> answer = ServerConnectionProvider.getInstance().loginRequest("login", argumentsList, RequestType.GET);
-
-            logger.info("request was sent");
-            usersListView.getItems().clear();
-            loadUsers();
-
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
+//        if (usersListView.getSelectionModel().isEmpty()){
+//            logger.info("Delete user function call: user is empty");
+//            return;
+//        }
+//        try {
+//            List<ServerArgument> argumentsList = new ArrayList<>();
+//            argumentsList.add(new ServerArgument("login" , CurrentUser.getCurrentUser().getLogin()));
+//            //TODO
+//            argumentsList.add(new ServerArgument("password" , usersListView.getSelectionModel().getSelectedItem()));
+//
+//            //TODO
+//            ResponseEntity<Integer> answer = ServerConnectionProvider.getInstance().loginRequest("login", argumentsList, RequestType.GET);
+//
+//            logger.info("request was sent");
+//            usersListView.getItems().clear();
+//            loadUsers();
+//
+//        } catch (Exception e) {
+//            System.out.println(e.getMessage());
+//        }
     }
 
     @Override
     @FXML
     public void banUser(ActionEvent event){
-        if (usersListView.getSelectionModel().isEmpty()){
-            logger.info("banUser function call : user is empty");
-            return;
-        }
-        try {
-            logger.info("request 'banUser' configuration");
-
-            List<ServerArgument> argumentsList = new ArrayList<>();
-            argumentsList.add(new ServerArgument("login", CurrentUser.getCurrentUser().getLogin()));
-            //TODO: name
-            argumentsList.add(new ServerArgument("password", usersListView.getSelectionModel().getSelectedItem()));
-
-            //TODO: serverFunction
-            ResponseEntity<Integer> answer = ServerConnectionProvider.getInstance().loginRequest("login", argumentsList, RequestType.GET);
-
-            logger.info("request was sent");
-        } catch (Exception e) {
-            //TODO: LOGGER
-            System.out.println(e.getMessage());
-        }
+//        if (usersListView.getSelectionModel().isEmpty()){
+//            logger.info("banUser function call : user is empty");
+//            return;
+//        }
+//        try {
+//            logger.info("request 'banUser' configuration");
+//
+//            List<ServerArgument> argumentsList = new ArrayList<>();
+//            argumentsList.add(new ServerArgument("login", CurrentUser.getCurrentUser().getLogin()));
+//            //TODO: name
+//            argumentsList.add(new ServerArgument("password", usersListView.getSelectionModel().getSelectedItem()));
+//
+//            //TODO: serverFunction
+//            ResponseEntity<Integer> answer = ServerConnectionProvider.getInstance().loginRequest("login", argumentsList, RequestType.GET);
+//
+//            logger.info("request was sent");
+//        } catch (Exception e) {
+//            //TODO: LOGGER
+//            System.out.println(e.getMessage());
+//        }
     }
 
     @Override
     @FXML
     public void unBanUser(ActionEvent event){
-        if (usersListView.getSelectionModel().isEmpty()){
-            logger.info("unbanUser function call : user is empty");
-            return;
-        }
-        try {
-            logger.info("request 'unbanUser' configuration");
-
-            List<ServerArgument> argumentsList = new ArrayList<>();
-            argumentsList.add(new ServerArgument("login" , CurrentUser.getCurrentUser().getLogin()));
-            argumentsList.add(new ServerArgument("usersList" , usersListView.getSelectionModel().getSelectedItem()));
-
-            //TODO
-            ResponseEntity<Integer> answer = ServerConnectionProvider.getInstance().loginRequest("login", argumentsList, RequestType.GET);
-
-            logger.info("Request was sent");
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
+//        if (usersListView.getSelectionModel().isEmpty()){
+//            logger.info("unbanUser function call : user is empty");
+//            return;
+//        }
+//        try {
+//            logger.info("request 'unbanUser' configuration");
+//
+//            List<ServerArgument> argumentsList = new ArrayList<>();
+//            argumentsList.add(new ServerArgument("login" , CurrentUser.getCurrentUser().getLogin()));
+//            argumentsList.add(new ServerArgument("usersList" , usersListView.getSelectionModel().getSelectedItem()));
+//
+//            //TODO
+//            ResponseEntity<Integer> answer = ServerConnectionProvider.getInstance().loginRequest("login", argumentsList, RequestType.GET);
+//
+//            logger.info("Request was sent");
+//        } catch (Exception e) {
+//            System.out.println(e.getMessage());
+//        }
     }
 
     public void setCurrentUserNameToWindow(){
@@ -151,27 +176,27 @@ public class ApplicationControllerImpl implements ApplicationController {
     }
 
     public void loadUsers(){
-        try {
-            logger.info("request 'loaduserchat' configuration");
-
-            List<ServerArgument> argumentsList = new ArrayList<>();
-            argumentsList.add(new ServerArgument("login" , CurrentUser.getCurrentUser().getLogin()));
-
-            //TODO
-            ResponseEntity<Integer> answer = ServerConnectionProvider.getInstance().loginRequest("login", argumentsList, RequestType.GET);
-            logger.info("request was sent");
-
-            //TODO
-            Type listType = new TypeToken<Set<String>>(){}.getType();
-//            Set<String> currentUsers = gson.fromJson(response1.getResponseMessage() , listType);
-//            currentUsers.remove(CurrentUser.getCurrentUser().getLogin());
-//            usersListView.getItems().addAll(currentUsers);
-            usersListView.refresh();
-
-        } catch (Exception e) {
-            //TODO: LOGGER
-            System.out.println(e.getMessage());
-        }
+//        try {
+//            logger.info("request 'loaduserchat' configuration");
+//
+//            List<ServerArgument> argumentsList = new ArrayList<>();
+//            argumentsList.add(new ServerArgument("login" , CurrentUser.getCurrentUser().getLogin()));
+//
+//            //TODO
+//            ResponseEntity<Integer> answer = ServerConnectionProvider.getInstance().loginRequest("login", argumentsList, RequestType.GET);
+//            logger.info("request was sent");
+//
+//            //TODO
+//            Type listType = new TypeToken<Set<String>>(){}.getType();
+////            Set<String> currentUsers = gson.fromJson(response1.getResponseMessage() , listType);
+////            currentUsers.remove(CurrentUser.getCurrentUser().getLogin());
+////            usersListView.getItems().addAll(currentUsers);
+//            usersListView.refresh();
+//
+//        } catch (Exception e) {
+//            //TODO: LOGGER
+//            System.out.println(e.getMessage());
+//        }
 
     }
 

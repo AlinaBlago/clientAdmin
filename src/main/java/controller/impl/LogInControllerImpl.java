@@ -15,8 +15,11 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import org.springframework.http.ResponseEntity;
+import provider.DialogProvider;
 import providers.RequestType;
 import providers.ServerConnectionProvider;
+import request.LoginRequest;
+import response.JwtResponse;
 
 import java.io.IOException;
 import java.net.URL;
@@ -40,67 +43,50 @@ public class LogInControllerImpl implements LogInController {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         loginButton.setOnAction(this::onLoginClick);
-        signUpButton.setOnAction(this::onSignUpClick);
+
     }
 
     @Override
     @FXML
     public void onLoginClick(ActionEvent event){
-                try {
-                    if(loginField.getText().length() == 0 || passwordField.getText().length() == 0){
-                        return;
-                    }
+        try {
+            if(loginField.getText().length() == 0 || passwordField.getText().length() == 0){
+                return;
+            }
+            LoginRequest requestBody = new LoginRequest(loginField.getText() , passwordField.getText());
+            ResponseEntity<JwtResponse> answer = ServerConnectionProvider.getInstance().loginRequest(requestBody);
+            logger.info("Request was sent");
 
-                    List<ServerArgument> argumentsList = new ArrayList<>();
-                    argumentsList.add(new ServerArgument("login" , loginField.getText()));
-                    argumentsList.add(new ServerArgument("password" , passwordField.getText()));
+            User user = new User(loginField.getText(), passwordField.getText());
+            CurrentUser.init(user);
 
-                    ResponseEntity<Integer> answer = ServerConnectionProvider.getInstance().loginRequest("login", argumentsList, RequestType.GET);
+            if(answer.getStatusCode().is2xxSuccessful()){
+                logger.info("User is logged in");
+                DialogProvider.ShowDialog("SUCCESSFUL" , "You are logged in");
+                CurrentUser.setAuthToken(answer.getBody().getToken());
+                System.out.println(answer.getBody().getToken());
 
-                    User user = new User("" , loginField.getText() , "");
-                    //TODO
-                    CurrentUser.init(user, answer.getBody());
+                //Открываем главное окно
+                Stage applStage = new Stage();
+                FXMLLoader loader = new FXMLLoader();
+                loader.setLocation(getClass().getResource("/application.fxml"));
+                Parent root = loader.load();
+                applStage.setScene(new Scene(root, 620, 680));
+                applStage.show();
 
-                    if(answer != null) {
-                        if (answer.getBody() != 0) {
-                            logger.info("User logined");
-                            //Открываем главное окно
-                            Stage applStage = new Stage();
-                            FXMLLoader loader = new FXMLLoader();
-                            loader.setLocation(getClass().getResource("/admin.fxml"));
-                            Parent root = loader.load();
-                            applStage.setScene(new Scene(root, 620, 680));
-                            applStage.show();
+                //Закрываем текущее окно
+                Stage currentStageToClose = (Stage) signUpButton.getScene().getWindow();
+                currentStageToClose.close();
+                return;
+            }
+            DialogProvider.ShowDialog("ERROR" , "Wrong login or password" , Alert.AlertType.ERROR);
 
-                            //Закрываем текущее окно
-                            Stage currentStageToClose = (Stage) signUpButton.getScene().getWindow();
-                            currentStageToClose.close();
-                            return;
-                        }
-                    }
-                    Alert alert = new Alert(Alert.AlertType.WARNING);
-                    alert.setContentText("Wrong login or password");
-                    alert.show();
-
-                } catch (Exception e) {
-                    logger.info(e.getMessage());
-                    System.out.println(e.getMessage());
-                }
+        } catch (Exception e) {
+            logger.info(e.getMessage());
+            System.out.println(e.getMessage());
+        }
             }
 
-    @Override
-    @FXML
-    public void onSignUpClick(ActionEvent event){
-        Stage signUp = new Stage();
-        Parent signUpSceneRoot = null;
-        try {
-            signUpSceneRoot = FXMLLoader.load(LogInControllerImpl.this.getClass().getResource("/logUp.fxml"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        signUp.setScene(new Scene(signUpSceneRoot, 620, 680));
-        signUp.show();
-    }
 
 }
 
