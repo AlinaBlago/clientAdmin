@@ -1,21 +1,17 @@
 package providers;
 
 import data.CurrentUser;
-import data.ServerArgument;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.ClientHttpRequestFactory;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestTemplate;
+import request.AddChatRequest;
 import request.LoginRequest;
 import request.SignupRequest;
-import response.JwtResponse;
+import response.ChatResponse;
 import response.SignupResponse;
-
-import java.io.IOException;
-import java.util.List;
+import response.UserResponse;
 
 public class ServerConnectionProvider {
     private static ServerConnectionProvider instance;
@@ -29,39 +25,29 @@ public class ServerConnectionProvider {
 
     private ServerConnectionProvider(){}
 
-    public ResponseEntity<JwtResponse> loginRequest(LoginRequest requestEntity){
+    public ResponseEntity<String> loginRequest(LoginRequest requestEntity) {
         var url = serverURL + "login";
         RestTemplate restTempl = new RestTemplate();
-        //return restTempl.postForEntity(url, requestEntity, JwtResponse.class);
-        return  restTempl.postForEntity(url, requestEntity, JwtResponse.class);
+        return restTempl.postForEntity(url, requestEntity, String.class);
     }
 
     public ResponseEntity<SignupResponse> signUpRequest(SignupRequest requestEntity){
-
-        var url = serverURL + "adminSignUp";
+        var url = serverURL + "users/admins/";
         RestTemplate restTempl = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Bearer " + CurrentUser.getAuthToken());
+        headers.add("Authorization", CurrentUser.getAuthToken());
 
-        return restTempl.exchange(url, HttpMethod.POST, new HttpEntity<>(headers), SignupResponse.class);
+        return restTempl.exchange(url, HttpMethod.POST, new HttpEntity<>(requestEntity, headers), SignupResponse.class);
     }
 
+    public ResponseEntity<ChatResponse> addChat(AddChatRequest request) {
+        var url = serverURL + "users/admins/chats";
+        RestTemplate restTempl = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Authorization", CurrentUser.getAuthToken());
 
-    private String createURL(String serverURL, String serverFunction, List<ServerArgument> arguments){
-        StringBuffer url = new StringBuffer();
-        url.append(ServerConnectionProvider.serverURL);
-        url.append("/");
-        url.append(serverFunction);
-        url.append("?");
-
-        for(int i = 0 ; i < arguments.size() ; i++){
-            url.append(arguments.get(i).toServerStyleString());
-            if(i + 1 < arguments.size()){
-                url.append("&");
-            }
-        }
-
-        return url.toString();
+        return restTempl.exchange(url, HttpMethod.POST, new HttpEntity<>(request, headers), ChatResponse.class);
     }
+
 
 }

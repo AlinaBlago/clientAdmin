@@ -1,7 +1,6 @@
 package controller.impl;
 
 import controller.LogUpController;
-import data.ServerArgument;
 import exception.ValidationException;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -9,19 +8,14 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-import javafx.stage.Stage;
 import org.springframework.http.ResponseEntity;
 import provider.DialogProvider;
-import providers.RequestType;
 import providers.ServerConnectionProvider;
 import request.SignupRequest;
 import response.SignupResponse;
 
-import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.ResourceBundle;
 
 public class LogUpControllerImpl implements LogUpController {
@@ -62,7 +56,7 @@ public class LogUpControllerImpl implements LogUpController {
             ResponseEntity<SignupResponse> answer = ServerConnectionProvider.getInstance().signUpRequest(requestBody);
             logger.info("Request was sent");
 
-            if (answer.getStatusCode().is2xxSuccessful() && answer.getBody().isStatus()) {
+            if (answer.getStatusCode().is2xxSuccessful()) {
                 DialogProvider.ShowDialog("SUCCESSFUL", "New user created");
             } else {
                 DialogProvider.ShowDialog("ERROR", "Something went wrong", Alert.AlertType.ERROR);

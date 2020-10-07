@@ -2,8 +2,6 @@ package controller.impl;
 
 import controller.LogInController;
 import data.CurrentUser;
-import data.ServerArgument;
-import data.User;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -16,15 +14,11 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 import org.springframework.http.ResponseEntity;
 import provider.DialogProvider;
-import providers.RequestType;
 import providers.ServerConnectionProvider;
 import request.LoginRequest;
-import response.JwtResponse;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.ResourceBundle;
 
 public class LogInControllerImpl implements LogInController {
@@ -53,25 +47,25 @@ public class LogInControllerImpl implements LogInController {
             if(loginField.getText().length() == 0 || passwordField.getText().length() == 0){
                 return;
             }
-            LoginRequest requestBody = new LoginRequest(loginField.getText() , passwordField.getText());
-            ResponseEntity<JwtResponse> answer = ServerConnectionProvider.getInstance().loginRequest(requestBody);
+            String role = "ROLE_ADMIN";
+            LoginRequest requestBody = new LoginRequest(loginField.getText() , passwordField.getText(), role);
+            ResponseEntity<String> answer = ServerConnectionProvider.getInstance().loginRequest(requestBody);
             logger.info("Request was sent");
 
-            User user = new User(loginField.getText(), passwordField.getText());
-            CurrentUser.init(user);
 
             if(answer.getStatusCode().is2xxSuccessful()){
+                CurrentUser.setUsername(loginField.getText());
                 logger.info("User is logged in");
-                DialogProvider.ShowDialog("SUCCESSFUL" , "You are logged in");
-                CurrentUser.setAuthToken(answer.getBody().getToken());
-                System.out.println(answer.getBody().getToken());
+                CurrentUser.setAuthToken(answer.getHeaders().get("Authorization").get(0));
 
-                //Открываем главное окно
                 Stage applStage = new Stage();
-                FXMLLoader loader = new FXMLLoader();
-                loader.setLocation(getClass().getResource("/application.fxml"));
-                Parent root = loader.load();
-                applStage.setScene(new Scene(root, 620, 680));
+                Parent applSceneRoot = null;
+                try {
+                    applSceneRoot = FXMLLoader.load(LogInControllerImpl.this.getClass().getResource("/application.fxml"));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                applStage.setScene(new Scene(applSceneRoot, 620, 680));
                 applStage.show();
 
                 //Закрываем текущее окно
@@ -79,9 +73,8 @@ public class LogInControllerImpl implements LogInController {
                 currentStageToClose.close();
                 return;
             }
-            DialogProvider.ShowDialog("ERROR" , "Wrong login or password" , Alert.AlertType.ERROR);
-
         } catch (Exception e) {
+            DialogProvider.ShowDialog("ERROR" , "Wrong login or password" , Alert.AlertType.ERROR);
             logger.info(e.getMessage());
             System.out.println(e.getMessage());
         }

@@ -4,21 +4,19 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import controller.ApplicationController;
 import data.CurrentUser;
-import data.ServerArgument;
-import data.User;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.stage.Stage;
 import org.springframework.http.ResponseEntity;
+import provider.DialogProvider;
 import providers.RequestType;
 import providers.ServerConnectionProvider;
+import request.AddChatRequest;
+import response.ChatResponse;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -63,6 +61,8 @@ public class ApplicationControllerImpl implements ApplicationController {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         logoutButton.setOnAction(this::logOut);
 
+        findUserButton.setOnAction(this::findUser);
+
         deleteUserButton.setOnAction(this::deleteUser);
 
         blockUserButton.setOnAction(this::banUser);
@@ -79,7 +79,7 @@ public class ApplicationControllerImpl implements ApplicationController {
             }
         });*/
 
-        loadUsers();
+       // loadUsers();
 
         setCurrentUserNameToWindow();
     }
@@ -171,8 +171,37 @@ public class ApplicationControllerImpl implements ApplicationController {
     }
 
     public void setCurrentUserNameToWindow(){
-        String text = "Вы вошли под логином: " + CurrentUser.getCurrentUser().getLogin();
+        String text = "Вы вошли под логином: " + CurrentUser.getUsername();
         currentUserNameLabel.setText(text);
+    }
+
+    @FXML
+    public void findUser(ActionEvent event) {
+        if (findUserLogin.getText().length() == 0){
+            return;
+        }
+        try {
+            logger.info("Start send 'findUser' to server");
+
+            AddChatRequest request = new AddChatRequest();
+            request.setUsername(findUserLogin.getText());
+            ResponseEntity<ChatResponse> answer = ServerConnectionProvider.getInstance().addChat(request);
+            logger.info("Request sent");
+
+            if (answer.getStatusCode().is2xxSuccessful()) {
+                logger.info("Response 0 from server");
+                usersListView.getItems().add(findUserLogin.getText());
+                findUserLogin.clear();
+            } else {
+                logger.warn("Response not 0 from server: " + answer.getStatusCode());
+                DialogProvider.ShowDialog("ERROR", "User not found", Alert.AlertType.ERROR);
+
+            }
+        } catch (Exception e){
+            logger.warn(e.getMessage());
+            System.out.println(e.getMessage());
+            DialogProvider.ShowDialog("FORBIDDEN", "You are not admin", Alert.AlertType.ERROR);
+        }
     }
 
     public void loadUsers(){
