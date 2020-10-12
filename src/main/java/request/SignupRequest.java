@@ -24,8 +24,8 @@ public class SignupRequest {
         this.email = email;
         this.username = username;
         this.password = password;
-        this.role = Collections.singleton("admin");
-        this.state = null;
+//        this.role = Collections.singleton("admin");
+//        this.state = null;
     }
 
     public String getEmail() {

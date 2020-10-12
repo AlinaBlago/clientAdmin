@@ -1,9 +1,8 @@
 package controller.impl;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import controller.ApplicationController;
 import data.CurrentUser;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -13,21 +12,20 @@ import javafx.scene.control.*;
 import javafx.stage.Stage;
 import org.springframework.http.ResponseEntity;
 import provider.DialogProvider;
-import providers.RequestType;
 import providers.ServerConnectionProvider;
-import request.AddChatRequest;
+import request.UserRequest;
 import response.ChatResponse;
+import response.FindUserResponse;
+import response.UserResponse;
+import util.FxUtilTest;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.lang.reflect.Type;
-import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.ResourceBundle;
-import java.util.Set;
+import java.util.TimeZone;
 
 public class ApplicationControllerImpl implements ApplicationController {
     @FXML
@@ -38,6 +36,9 @@ public class ApplicationControllerImpl implements ApplicationController {
 
     @FXML
     ListView<String> usersListView;
+
+    @FXML
+    ListView<String> userInfo;
 
     @FXML
     Button deleteUserButton;
@@ -52,10 +53,15 @@ public class ApplicationControllerImpl implements ApplicationController {
     TextField findUserLogin;
 
     @FXML
+    ComboBox<String> findComboBox;
+
+    @FXML
     Button findUserButton;
 
     @FXML
     Button logUpButton;
+
+    private String selectedChatLogin;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -71,15 +77,9 @@ public class ApplicationControllerImpl implements ApplicationController {
 
         logUpButton.setOnAction(this::onSignUpClick);
 
-        /*
-        users_listview.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                //UsersListViewChanged(newValue);
-            }
-        });*/
+        findUserLogin.textProperty().addListener(this::textChanged);
 
-       // loadUsers();
+        usersListView.getSelectionModel().selectedItemProperty().addListener(this::usersListViewChanged);
 
         setCurrentUserNameToWindow();
     }
@@ -100,74 +100,70 @@ public class ApplicationControllerImpl implements ApplicationController {
     @Override
     @FXML
     public void deleteUser(ActionEvent event){
-//        if (usersListView.getSelectionModel().isEmpty()){
-//            logger.info("Delete user function call: user is empty");
-//            return;
-//        }
-//        try {
-//            List<ServerArgument> argumentsList = new ArrayList<>();
-//            argumentsList.add(new ServerArgument("login" , CurrentUser.getCurrentUser().getLogin()));
-//            //TODO
-//            argumentsList.add(new ServerArgument("password" , usersListView.getSelectionModel().getSelectedItem()));
-//
-//            //TODO
-//            ResponseEntity<Integer> answer = ServerConnectionProvider.getInstance().loginRequest("login", argumentsList, RequestType.GET);
-//
-//            logger.info("request was sent");
-//            usersListView.getItems().clear();
-//            loadUsers();
-//
-//        } catch (Exception e) {
-//            System.out.println(e.getMessage());
-//        }
+        if (usersListView.getSelectionModel().isEmpty()){
+            logger.info("Delete user function call: user is empty");
+            return;
+        }
+        try {
+            UserRequest requestBody = new UserRequest(usersListView.getSelectionModel().getSelectedItem());
+            ResponseEntity<String> answer = ServerConnectionProvider.getInstance().deleteUser(requestBody);
+            logger.info("request was sent");
+            if(answer.getStatusCode().is2xxSuccessful()) {
+                usersListView.getItems().clear();
+                DialogProvider.showDialog("Successful" , "User deleted" , Alert.AlertType.INFORMATION);
+                //  loadUsers();
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            DialogProvider.showDialog("ERROR" , "User doesn't deleted" , Alert.AlertType.ERROR);
+        }
     }
 
     @Override
     @FXML
     public void banUser(ActionEvent event){
-//        if (usersListView.getSelectionModel().isEmpty()){
-//            logger.info("banUser function call : user is empty");
-//            return;
-//        }
-//        try {
-//            logger.info("request 'banUser' configuration");
-//
-//            List<ServerArgument> argumentsList = new ArrayList<>();
-//            argumentsList.add(new ServerArgument("login", CurrentUser.getCurrentUser().getLogin()));
-//            //TODO: name
-//            argumentsList.add(new ServerArgument("password", usersListView.getSelectionModel().getSelectedItem()));
-//
-//            //TODO: serverFunction
-//            ResponseEntity<Integer> answer = ServerConnectionProvider.getInstance().loginRequest("login", argumentsList, RequestType.GET);
-//
-//            logger.info("request was sent");
-//        } catch (Exception e) {
-//            //TODO: LOGGER
-//            System.out.println(e.getMessage());
-//        }
+        if (usersListView.getSelectionModel().isEmpty()){
+            logger.info("banUser function call : user is empty");
+            return;
+        }
+        try {
+            logger.info("request 'banUser' configuration");
+            UserRequest requestBody = new UserRequest(usersListView.getSelectionModel().getSelectedItem());
+            logger.info("request was sent");
+            ResponseEntity<String> answer = ServerConnectionProvider.getInstance().lockUser(requestBody);
+
+            if(answer.getStatusCode().is2xxSuccessful()) {
+                DialogProvider.showDialog("Successful" , "User locked" , Alert.AlertType.INFORMATION);
+            }
+
+        } catch (Exception e) {
+            logger.info("User doesn't banned, error");
+            DialogProvider.showDialog("ERROR" , "User doesn't locked" , Alert.AlertType.ERROR);
+            System.out.println(e.getMessage());
+        }
     }
 
     @Override
     @FXML
     public void unBanUser(ActionEvent event){
-//        if (usersListView.getSelectionModel().isEmpty()){
-//            logger.info("unbanUser function call : user is empty");
-//            return;
-//        }
-//        try {
-//            logger.info("request 'unbanUser' configuration");
-//
-//            List<ServerArgument> argumentsList = new ArrayList<>();
-//            argumentsList.add(new ServerArgument("login" , CurrentUser.getCurrentUser().getLogin()));
-//            argumentsList.add(new ServerArgument("usersList" , usersListView.getSelectionModel().getSelectedItem()));
-//
-//            //TODO
-//            ResponseEntity<Integer> answer = ServerConnectionProvider.getInstance().loginRequest("login", argumentsList, RequestType.GET);
-//
-//            logger.info("Request was sent");
-//        } catch (Exception e) {
-//            System.out.println(e.getMessage());
-//        }
+        if (usersListView.getSelectionModel().isEmpty()){
+            logger.info("unlockUser function call : user is empty");
+            return;
+        }
+        try {
+            logger.info("request 'unlockUser' configuration");
+            UserRequest requestBody = new UserRequest(usersListView.getSelectionModel().getSelectedItem());
+            logger.info("Request was sent");
+            ResponseEntity<String> answer = ServerConnectionProvider.getInstance().unLockUser(requestBody);
+
+            if(answer.getStatusCode().is2xxSuccessful()) {
+                DialogProvider.showDialog("Successful" , "User unlocked" , Alert.AlertType.INFORMATION);
+            }
+        } catch (Exception e) {
+            logger.info("User doesn't banned, error");
+            System.out.println(e.getMessage());
+            DialogProvider.showDialog("ERROR" , "User doesn't unLocked" , Alert.AlertType.ERROR);
+        }
     }
 
     public void setCurrentUserNameToWindow(){
@@ -176,56 +172,100 @@ public class ApplicationControllerImpl implements ApplicationController {
     }
 
     @FXML
-    public void findUser(ActionEvent event) {
-        if (findUserLogin.getText().length() == 0){
-            return;
-        }
-        try {
-            logger.info("Start send 'findUser' to server");
 
-            AddChatRequest request = new AddChatRequest();
-            request.setUsername(findUserLogin.getText());
-            ResponseEntity<ChatResponse> answer = ServerConnectionProvider.getInstance().addChat(request);
+    public void usersListViewChanged(ObservableValue<? extends String> observable, String oldValue, String newValue) {
+        usersListView.getItems().clear();
+        usersListView.refresh();
+
+        this.selectedChatLogin = newValue;
+
+        try {
+            updateUserInfo(newValue);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public void updateUserInfo(String login) throws IOException {
+        logger.info("Sending 'updateChatForUser' request to server");
+
+        UserRequest request = new UserRequest();
+        request.setUsername(usersListView.getSelectionModel().getSelectedItem());
+
+        ResponseEntity<UserResponse> answer = ServerConnectionProvider.getInstance().addChat(request);
+
+        logger.info("Request was sent");
+
+        if (answer.getStatusCode().is2xxSuccessful()) {
+            logger.info("Successful");
+            userInfo.getItems().add(answer.getBody().getUsername());
+            userInfo.getItems().add(answer.getBody().getEmail());
+            userInfo.getItems().add(answer.getBody().getCreatedAt());
+            userInfo.refresh();
+
+        } else {
+            logger.warn("Error: " + answer.getStatusCode());
+            DialogProvider.showDialog("ERROR", "Loading error", Alert.AlertType.ERROR);
+        }
+    }
+
+    @FXML
+    public void textChanged(ObservableValue<? extends String> observable,
+                            String oldValue, String newValue){
+        if (newValue.length() >= 2) {
+            findComboBox.getItems().clear();
+            UserRequest request = new UserRequest();
+            request.setUsername(newValue);
+            ResponseEntity<FindUserResponse> answer = ServerConnectionProvider.getInstance().findUser(request);
             logger.info("Request sent");
 
             if (answer.getStatusCode().is2xxSuccessful()) {
-                logger.info("Response 0 from server");
-                usersListView.getItems().add(findUserLogin.getText());
-                findUserLogin.clear();
-            } else {
-                logger.warn("Response not 0 from server: " + answer.getStatusCode());
-                DialogProvider.ShowDialog("ERROR", "User not found", Alert.AlertType.ERROR);
+                logger.info("Response 200 from server");
+                answer.getBody().getUsernames().forEach(username ->{
+                    findComboBox.getItems().addAll(username);
+                });
 
+            } else {
+                logger.warn("Response not 200 from server: " + answer.getStatusCode());
+                DialogProvider.showDialog("ERROR", "User not found", Alert.AlertType.ERROR);
+
+            }
+        }
+    }
+
+    @FXML
+    public void findUser(ActionEvent event) {
+        try {
+            if (!findComboBox.getSelectionModel().getSelectedItem().isBlank())
+            {
+                String login = findComboBox.getSelectionModel().getSelectedItem();
+                logger.info("Start send 'findUser' to server");
+
+                FxUtilTest.getComboBoxValue(findComboBox);
+                UserRequest request = new UserRequest();
+                request.setUsername(login);
+                ResponseEntity<UserResponse> answer = ServerConnectionProvider.getInstance().addChat(request);
+                logger.info("Request sent");
+
+                if (answer.getStatusCode().is2xxSuccessful()) {
+                    logger.info("Response 200 from server");
+                    usersListView.getItems().add(login);
+                    usersListView.refresh();
+
+
+                } else {
+                    logger.warn("Response not 200 from server: " + answer.getStatusCode());
+                    DialogProvider.showDialog("ERROR", "User not found", Alert.AlertType.ERROR);
+
+                }
             }
         } catch (Exception e){
             logger.warn(e.getMessage());
             System.out.println(e.getMessage());
-            DialogProvider.ShowDialog("FORBIDDEN", "You are not admin", Alert.AlertType.ERROR);
+            DialogProvider.showDialog("FORBIDDEN", "You are not admin", Alert.AlertType.ERROR);
         }
-    }
 
-    public void loadUsers(){
-//        try {
-//            logger.info("request 'loaduserchat' configuration");
-//
-//            List<ServerArgument> argumentsList = new ArrayList<>();
-//            argumentsList.add(new ServerArgument("login" , CurrentUser.getCurrentUser().getLogin()));
-//
-//            //TODO
-//            ResponseEntity<Integer> answer = ServerConnectionProvider.getInstance().loginRequest("login", argumentsList, RequestType.GET);
-//            logger.info("request was sent");
-//
-//            //TODO
-//            Type listType = new TypeToken<Set<String>>(){}.getType();
-////            Set<String> currentUsers = gson.fromJson(response1.getResponseMessage() , listType);
-////            currentUsers.remove(CurrentUser.getCurrentUser().getLogin());
-////            usersListView.getItems().addAll(currentUsers);
-//            usersListView.refresh();
-//
-//        } catch (Exception e) {
-//            //TODO: LOGGER
-//            System.out.println(e.getMessage());
-//        }
 
     }
 

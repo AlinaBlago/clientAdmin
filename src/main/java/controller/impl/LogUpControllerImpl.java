@@ -8,6 +8,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.stage.Stage;
 import org.springframework.http.ResponseEntity;
 import provider.DialogProvider;
 import providers.ServerConnectionProvider;
@@ -47,7 +48,7 @@ public class LogUpControllerImpl implements LogUpController {
                 validateSignUpFields();
             } catch (ValidationException e) {
                 logger.warn(e.getMessage());
-                DialogProvider.ShowDialog(e.GetPropertyName(), e.GetPropertyError());
+                DialogProvider.showDialog(e.GetPropertyName(), e.GetPropertyError());
                 return;
             }
             logger.info("Request sign up sending");
@@ -57,9 +58,10 @@ public class LogUpControllerImpl implements LogUpController {
             logger.info("Request was sent");
 
             if (answer.getStatusCode().is2xxSuccessful()) {
-                DialogProvider.ShowDialog("SUCCESSFUL", "New user created");
+                DialogProvider.showDialog("SUCCESSFUL", "New user created");
+                ((Stage)signUpButton.getScene().getWindow()).close();
             } else {
-                DialogProvider.ShowDialog("ERROR", "Something went wrong", Alert.AlertType.ERROR);
+                DialogProvider.showDialog("ERROR", "Something went wrong", Alert.AlertType.ERROR);
             }
 
         } catch (Exception e) {

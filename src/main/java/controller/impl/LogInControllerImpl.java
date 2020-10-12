@@ -47,8 +47,7 @@ public class LogInControllerImpl implements LogInController {
             if(loginField.getText().length() == 0 || passwordField.getText().length() == 0){
                 return;
             }
-            String role = "ROLE_ADMIN";
-            LoginRequest requestBody = new LoginRequest(loginField.getText() , passwordField.getText(), role);
+            LoginRequest requestBody = new LoginRequest(loginField.getText() , passwordField.getText());
             ResponseEntity<String> answer = ServerConnectionProvider.getInstance().loginRequest(requestBody);
             logger.info("Request was sent");
 
@@ -58,6 +57,21 @@ public class LogInControllerImpl implements LogInController {
                 logger.info("User is logged in");
                 CurrentUser.setAuthToken(answer.getHeaders().get("Authorization").get(0));
 
+                openWindow();
+
+                //Закрываем текущее окно
+                Stage currentStageToClose = (Stage) loginButton.getScene().getWindow();
+                currentStageToClose.close();
+
+            }
+        } catch (Exception e) {
+            DialogProvider.showDialog("ERROR" , "Wrong login or password" , Alert.AlertType.ERROR);
+            logger.info(e.getMessage());
+            System.out.println(e.getMessage());
+        }
+            }
+
+            public void openWindow(){
                 Stage applStage = new Stage();
                 Parent applSceneRoot = null;
                 try {
@@ -67,17 +81,6 @@ public class LogInControllerImpl implements LogInController {
                 }
                 applStage.setScene(new Scene(applSceneRoot, 620, 680));
                 applStage.show();
-
-                //Закрываем текущее окно
-                Stage currentStageToClose = (Stage) signUpButton.getScene().getWindow();
-                currentStageToClose.close();
-                return;
-            }
-        } catch (Exception e) {
-            DialogProvider.ShowDialog("ERROR" , "Wrong login or password" , Alert.AlertType.ERROR);
-            logger.info(e.getMessage());
-            System.out.println(e.getMessage());
-        }
             }
 
 
