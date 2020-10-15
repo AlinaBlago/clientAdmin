@@ -18,7 +18,7 @@ import response.UserResponse;
 public class ServerConnectionProvider {
     private static ServerConnectionProvider instance;
 
-    public static final String serverURL = "http://localhost:8080/";
+    public static final String serverURL = "https://xettlena.herokuapp.com/";
 
     public static RestTemplate restTempl = new RestTemplate();
 

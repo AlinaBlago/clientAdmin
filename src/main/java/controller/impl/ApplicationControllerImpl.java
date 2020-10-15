@@ -174,39 +174,41 @@ public class ApplicationControllerImpl implements ApplicationController {
     @FXML
 
     public void usersListViewChanged(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-        usersListView.getItems().clear();
-        usersListView.refresh();
-
         this.selectedChatLogin = newValue;
 
         try {
-            updateUserInfo(newValue);
+            updateUserInfo();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
 
-    public void updateUserInfo(String login) throws IOException {
-        logger.info("Sending 'updateChatForUser' request to server");
+    public void updateUserInfo() throws IOException {
+        if(selectedChatLogin != null){
+            if(!selectedChatLogin.isEmpty()){
+                logger.info("Sending 'updateChatForUser' request to server");
 
-        UserRequest request = new UserRequest();
-        request.setUsername(usersListView.getSelectionModel().getSelectedItem());
+                UserRequest request = new UserRequest();
+                request.setUsername(selectedChatLogin);
 
-        ResponseEntity<UserResponse> answer = ServerConnectionProvider.getInstance().addChat(request);
+                ResponseEntity<UserResponse> answer = ServerConnectionProvider.getInstance().addChat(request);
 
-        logger.info("Request was sent");
+                logger.info("Request was sent");
 
-        if (answer.getStatusCode().is2xxSuccessful()) {
-            logger.info("Successful");
-            userInfo.getItems().add(answer.getBody().getUsername());
-            userInfo.getItems().add(answer.getBody().getEmail());
-            userInfo.getItems().add(answer.getBody().getCreatedAt());
-            userInfo.refresh();
+                if (answer.getStatusCode().is2xxSuccessful()) {
+                    logger.info("Successful");
+                    userInfo.getItems().clear();
+                    userInfo.getItems().add(answer.getBody().getUsername());
+                    userInfo.getItems().add(answer.getBody().getEmail());
+                    userInfo.getItems().add(answer.getBody().getCreatedAt());
+                    userInfo.refresh();
 
-        } else {
-            logger.warn("Error: " + answer.getStatusCode());
-            DialogProvider.showDialog("ERROR", "Loading error", Alert.AlertType.ERROR);
+                } else {
+                    logger.warn("Error: " + answer.getStatusCode());
+                    DialogProvider.showDialog("ERROR", "Loading error", Alert.AlertType.ERROR);
+                }
+            }
         }
     }
 
